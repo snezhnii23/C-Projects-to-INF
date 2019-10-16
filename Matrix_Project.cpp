@@ -18,7 +18,7 @@ int main()
 		string NameFile3 = "test" + to_string(i) + ".txt";
 		SparseMatrix a(NameFile1);
 		SparseMatrix b(NameFile2);
-		SparseMatrix c(NameFile3);
+		DenseMatrix c(NameFile3);
 		if (!a.Multiply(b))
 		{
 			cout << "Error. Check your data" << endl;

@@ -76,6 +76,7 @@ public:
 		else
 			return false;
 	}
+	bool Equals(SparseMatrix a);
 	pr getSize()
 	{
 		return{ height, width };
@@ -184,6 +185,17 @@ public:
 		}
 		else
 			return false;	
+	}
+	bool Equals(DenseMatrix a)
+	{
+		SparseMatrix b = a.Dense_to_Sparse();
+		//------------------------------------
+		if (height == b.height && width == b.width && array == b.array)
+		{
+			return true;
+		}
+		else
+			return false;
 	}
 	bool Multiply(SparseMatrix b)
 	{
@@ -344,4 +356,15 @@ SparseMatrix DenseMatrix::Dense_to_Sparse()
 		}
 	}
 	return SparseMatrix(height, width, arrayNew);
+}
+bool DenseMatrix::Equals(SparseMatrix a)
+{
+	DenseMatrix b = a.Sparse_to_Dense();
+	//-----------------------------------
+	if (height == b.height && width == b.width && array == b.array)
+	{
+		return true;
+	}
+	else
+		return false;
 }
