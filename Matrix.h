@@ -30,6 +30,8 @@ public:
 	virtual ~Matrix() {}
 };
 
+class SparseMatrix;
+
 class DenseMatrix : public Matrix
 {
 private:
@@ -100,30 +102,7 @@ public:
 		array = arrayNew;
 		return true;
 	}
-	bool Multiply(SparseMatrix a)
-	{
-		DenseMatrix b = a.Sparse_to_Dense();
-		//--------------------------------------
-		if (width != b.height)
-			return false;
-		int heightNew = height;
-		int widthNew = width;
-		vector <double> arrayNew(heightNew * widthNew);
-		for (int i = 0; i < heightNew; i++)
-		{
-			for (int j = 0; j < widthNew; j++)
-			{
-				for (int z = 0; z < width; z++)
-				{
-					arrayNew[i * widthNew + j] += array[i * width + z] * b.array[z * b.width + j];
-				}
-			}
-		}
-		height = heightNew;
-		width = widthNew;
-		array = arrayNew;
-		return true;
-	}
+	bool DenseMatrix::Multiply(SparseMatrix a);
 	bool Summ(DenseMatrix b)
 	{
 		if (height != b.height || width != b.width)
@@ -151,21 +130,7 @@ public:
 			fout << endl; 
 		}
 	}
-	SparseMatrix Dense_to_Sparse()
-	{
-		mp arrayNew;
-		for (int i = 0; i < height; i++)
-		{
-			for (int j = 0; j < width; j++)
-			{
-				if (array[i * width + j] != 0)
-				{
-					arrayNew.insert({ { i, j }, array[i * width + j] });
-				}
-			}
-		}
-		return SparseMatrix(height, width, arrayNew);
-	}
+	SparseMatrix Dense_to_Sparse();
 };
 
 class SparseMatrix : public Matrix
@@ -340,3 +305,43 @@ public:
 		}
 	}
 };
+
+bool DenseMatrix::Multiply(SparseMatrix a)
+{
+	DenseMatrix b = a.Sparse_to_Dense();
+	//--------------------------------------
+	if (width != b.height)
+		return false;
+	int heightNew = height;
+	int widthNew = width;
+	vector <double> arrayNew(heightNew * widthNew);
+	for (int i = 0; i < heightNew; i++)
+	{
+		for (int j = 0; j < widthNew; j++)
+		{
+			for (int z = 0; z < width; z++)
+			{
+				arrayNew[i * widthNew + j] += array[i * width + z] * b.array[z * b.width + j];
+			}
+		}
+	}
+	height = heightNew;
+	width = widthNew;
+	array = arrayNew;
+	return true;
+}
+SparseMatrix DenseMatrix::Dense_to_Sparse()
+{
+	mp arrayNew;
+	for (int i = 0; i < height; i++)
+	{
+		for (int j = 0; j < width; j++)
+		{
+			if (array[i * width + j] != 0)
+			{
+				arrayNew.insert({ { i, j }, array[i * width + j] });
+			}
+		}
+	}
+	return SparseMatrix(height, width, arrayNew);
+}
