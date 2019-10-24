@@ -9,6 +9,7 @@
 #include <string>
 #include <map>
 #include <sstream>
+#include <ctime>
 
 #define pr pair<int, int>
 #define mp map <pr, double>
@@ -19,6 +20,7 @@ using namespace std;
 
 mp::iterator it;
 mp::iterator iter;
+mp::iterator it_res;
 st::iterator it_set;
 
 class Matrix
@@ -41,7 +43,7 @@ private:
 	vc array;
 
 public:
-	DenseMatrix(string NameFile)
+	DenseMatrix(string& NameFile)
 	{
 		int n = 0, m = 0;
 		ifstream fin(NameFile);
@@ -57,6 +59,7 @@ public:
 				arr.push_back(Number);
 			}
 		}
+		fin.close();
 		m = arr.size() / n;
 		height = n;
 		width = m;
@@ -67,6 +70,11 @@ public:
 		height = heightNew;
 		width = widthNew;
 		array = arrayNew;
+	}
+	~DenseMatrix()
+	{
+		//cout << "День добрый, Я Деструктор DenseMatrix, я тут мусор пособираю, я быстренько)" << endl;
+		array.clear();
 	}
 	bool Equals(DenseMatrix &b)
 	{
@@ -106,7 +114,7 @@ public:
 		return DenseMatrix(heightNew, widthNew, arrayNew);
 	}
 	DenseMatrix DenseMatrix::Multiply(SparseMatrix &a);
-	DenseMatrix Summ(DenseMatrix &b)
+	/*DenseMatrix& Summ(DenseMatrix &b)
 	{
 		vc arrayNew(height * width);
 		if (height != b.height || width != b.width)
@@ -121,15 +129,15 @@ public:
 			}
 		}
 		return DenseMatrix(height, width, arrayNew);
-	}
+	}*/
 	string to_String()
 	{
 		long long p = 131;
 		long long mod = 157543;
 		long long a = 0;
-		for (int i = 0; i < array.size(); i++)
+		for (int i = 0; i < height * width; i++)
 		{
-			a = (a * p + array[i]);
+			a = (a * p + int(array[i]));
 			a %= mod;
 		}
 		return to_string(a);
@@ -145,6 +153,7 @@ public:
 			}
 			fout << endl; 
 		}
+		fout.close();
 	}
 	SparseMatrix Dense_to_Sparse();
 };
@@ -155,11 +164,9 @@ private:
 	int height;
 	int width;
 	mp array;
-	vc array_string;
-	vc array_column;
 
 public:
-	SparseMatrix(string NameFile)
+	SparseMatrix(string& NameFile)
 	{
 		int n = 0, m = 0;
 		int i = 0, j = 0;
@@ -186,29 +193,22 @@ public:
 			}
 			i++;
 		}
+		fin.close();
 		m /= n;
 		height = n;
 		width = m;
 		array = arr;
-		vc arrayNew_string(height), arrayNew_column(width);
-		for (it_set = set_string.begin(); it_set != set_string.end(); it_set++)
-		{
-			arrayNew_string[it_set->second] = 1;
-		}
-		for (it_set = set_column.begin(); it_set != set_column.end(); it_set++)
-		{
-			arrayNew_column[it_set->second] = 1;
-		}
-		array_string = arrayNew_string;
-		array_column = arrayNew_column;
 	}
-	SparseMatrix(int heightNew, int widthNew, mp arrayNew, vc arrayNew_string, vc arrayNew_column)
+	SparseMatrix(int heightNew, int widthNew, mp arrayNew)
 	{
 		height = heightNew;
 		width = widthNew;
 		array = arrayNew;
-		array_string = arrayNew_string;
-		array_column = arrayNew_column;
+	}
+	~SparseMatrix()
+	{
+		//cout << "День добрый, Я Деструктор SparseMatrix, я тут мусор пособираю, я быстренько)" << endl;
+		array.clear();
 	}
 	bool Equals(SparseMatrix &b)
 	{
@@ -238,77 +238,81 @@ public:
 	}
 	SparseMatrix Multiply(SparseMatrix &b)
 	{
-		vc c;
 		mp q;
 		if (width != b.height)
-			return SparseMatrix(-1, -1, q, c, c);
+			return SparseMatrix(-1, -1, q);
 		int heightNew = height;
 		int widthNew = b.width;
 		mp arrayNew;
-		vc arrayNew_string(heightNew), arrayNew_column(widthNew);
 		int n = width;
-		for (int i = 0; i < heightNew; i++)
+		for (it = array.begin(); it != array.end(); ++it)
 		{
-			for (int j = 0; j < widthNew; j++)
+			for (iter = b.array.begin(); iter != b.array.end(); ++iter)
 			{
-				if (array_string[i] && b.array_column[j])
+				if (it->first.second == iter->first.first)
 				{
-					double result = 0;
-					for (int z = 0; z < n; z++)
+					double res = 0;
+					it_res = arrayNew.find({ it->first.first, iter->first.second });
+					if (it_res != arrayNew.end())
 					{
-						it = array.find({ i, z });
-						iter = b.array.find({ z, j });
-						if (it != array.end() && iter != b.array.end())
-							result += it->second * iter->second;
+						it_res->second += it->second * iter->second;
+						if (it_res->second == 0)
+						{
+							arrayNew.erase(it_res);
+
+						}
 					}
-					if (result != 0)
+					else
 					{
-						arrayNew.insert({ { i, j }, result });
-						arrayNew_string[i] = 1;
-						arrayNew_column[j] = 1;
+						res = it->second * iter->second;
+						if (res)
+							arrayNew.insert({ { it->first.first, iter->first.second }, res });
 					}
 				}
 			}
 		}
-		return SparseMatrix(heightNew, widthNew, arrayNew, arrayNew_string, arrayNew_column);
+		return SparseMatrix(heightNew, widthNew, arrayNew);
 	}
 	SparseMatrix Multiply(DenseMatrix &a)
 	{
+		//clock_t t0 = clock();
 		SparseMatrix b = a.Dense_to_Sparse();
+		//cout << fixed << setprecision(6) << double(clock() - t0) / CLOCKS_PER_SEC << endl;
 		//------------------------------------
-		vc c;
 		mp q;
 		if (width != b.height)
-			return SparseMatrix(-1, -1, q, c, c);
+			return SparseMatrix(-1, -1, q);
 		int heightNew = height;
 		int widthNew = b.width;
 		mp arrayNew;
-		vc arrayNew_string(heightNew), arrayNew_column(widthNew);
 		int n = width;
-		for (int i = 0; i < heightNew; i++)
+		for (it = array.begin(); it != array.end(); ++it)
 		{
-			for (int j = 0; j < widthNew; j++)
+			for (iter = b.array.begin(); iter != b.array.end(); ++iter)
 			{
-				if (array_string[i] && b.array_column[j])
+				if (it->first.second == iter->first.first)
 				{
-					double result = 0;
-					for (int z = 0; z < n; z++)
+					double res = 0;
+					it_res = arrayNew.find({ it->first.first, iter->first.second });
+					if (it_res != arrayNew.end())
 					{
-						it = array.find({ i, z });
-						iter = b.array.find({ z, j });
-						if (it != array.end() && iter != b.array.end())
-							result += it->second * iter->second;
+						it_res->second += it->second * iter->second;
+						if (it_res->second == 0)
+						{
+							arrayNew.erase(it_res);
+
+						}
 					}
-					if (result != 0)
+					else
 					{
-						arrayNew.insert({ { i, j }, result });
-						arrayNew_string[i] = 1;
-						arrayNew_column[j] = 1;
+						res = it->second * iter->second;
+						if (res)
+							arrayNew.insert({ { it->first.first, iter->first.second }, res });
 					}
 				}
 			}
 		}
-		return SparseMatrix(heightNew, widthNew, arrayNew, arrayNew_string, arrayNew_column);
+		return SparseMatrix(heightNew, widthNew, arrayNew);
 	}
 	DenseMatrix Sparse_to_Dense()
 	{
@@ -400,7 +404,6 @@ DenseMatrix DenseMatrix::Multiply(SparseMatrix &a)
 SparseMatrix DenseMatrix::Dense_to_Sparse()
 {
 	mp arrayNew;
-	vc arrayNew_string(height), arrayNew_column(width);
 	for (int i = 0; i < height; i++)
 	{
 		for (int j = 0; j < width; j++)
@@ -408,12 +411,10 @@ SparseMatrix DenseMatrix::Dense_to_Sparse()
 			if (array[i * width + j] != 0)
 			{
 				arrayNew.insert({ { i, j }, array[i * width + j] });
-				arrayNew_string[i] = 1;
-				arrayNew_column[j] = 1;
 			}
 		}
 	}
-	return SparseMatrix(height, width, arrayNew, arrayNew_string, arrayNew_column);
+	return SparseMatrix(height, width, arrayNew);
 }
 bool DenseMatrix::Equals(SparseMatrix &a)
 {
@@ -430,36 +431,36 @@ bool DenseMatrix::Equals(SparseMatrix &a)
 		return false;
 }
 
-DenseMatrix operator * (DenseMatrix a, DenseMatrix b)
+DenseMatrix operator * (DenseMatrix& a, DenseMatrix& b)
 {
 	return a.Multiply(b);
 }
-DenseMatrix operator * (DenseMatrix a, SparseMatrix b)
+DenseMatrix operator * (DenseMatrix& a, SparseMatrix& b)
 {
 	return a.Multiply(b);
 }
-SparseMatrix operator * (SparseMatrix a, DenseMatrix b)
+SparseMatrix operator * (SparseMatrix& a, DenseMatrix& b)
 {
 	return a.Multiply(b);
 }
-SparseMatrix operator * (SparseMatrix a, SparseMatrix b)
+SparseMatrix operator * (SparseMatrix& a, SparseMatrix& b)
 {
 	return a.Multiply(b);
 }
 
-bool operator == (DenseMatrix a, DenseMatrix b)
+bool operator == (DenseMatrix& a, DenseMatrix& b)
 {
 	return a.Equals(b);
 }
-bool operator == (DenseMatrix a, SparseMatrix b)
+bool operator == (DenseMatrix& a, SparseMatrix& b)
 {
 	return a.Equals(b);
 }
-bool operator == (SparseMatrix a, DenseMatrix b)
+bool operator == (SparseMatrix& a, DenseMatrix& b)
 {
 	return a.Equals(b);
 }
-bool operator == (SparseMatrix a, SparseMatrix b)
+bool operator == (SparseMatrix& a, SparseMatrix& b)
 {
 	return a.Equals(b);
 }

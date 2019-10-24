@@ -4,11 +4,11 @@
 #include "stdafx.h"
 #include "Matrix.h"
 #include <string>
-#include <ctime>
 
 
 int main()
 {
+	setlocale(LC_ALL, "Russian");
 	int n = 5;
 	string Name1 = "1_";
 	string Name2 = "2_";
@@ -17,13 +17,18 @@ int main()
 		string NameFile1 = Name1 + to_string(i) + ".txt";
 		string NameFile2 = Name2 + to_string(i) + ".txt";
 		string NameFile3 = "test" + to_string(i) + ".txt";
+		/*
+		string NameFile1 = "m1.txt"; // Name1 + to_string(i) + ".txt";
+		string NameFile2 = "m2.txt"; // Name2 + to_string(i) + ".txt";
+		string NameFile3 = "result.txt"; // "test" + to_string(i) + ".txt";
+		*/
 		clock_t t0 = clock();
 		SparseMatrix a(NameFile1);
-		DenseMatrix b(NameFile2);
+		SparseMatrix b(NameFile2);
 		SparseMatrix c(NameFile3);
 		clock_t t1 = clock();
-		SparseMatrix d = a * b;
 		cout << fixed << setprecision(5) << "time: " << double(t1 - t0) / CLOCKS_PER_SEC << endl;
+		SparseMatrix d = a * b;
 		if (d.getSize().first == -1)
 		{
 			cout << "Error. Check your data" << endl;
