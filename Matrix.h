@@ -114,12 +114,13 @@ public:
 		return DenseMatrix(heightNew, widthNew, arrayNew);
 	}
 	DenseMatrix DenseMatrix::Multiply(SparseMatrix &a);
-	/*DenseMatrix& Summ(DenseMatrix &b)
+	DenseMatrix Summ(DenseMatrix &b)
 	{
+		vc a;
 		vc arrayNew(height * width);
 		if (height != b.height || width != b.width)
 		{
-			return false;
+			return DenseMatrix(-1, -1, a);
 		}
 		for (int i = 0; i < height; i++)
 		{
@@ -129,7 +130,7 @@ public:
 			}
 		}
 		return DenseMatrix(height, width, arrayNew);
-	}*/
+	}
 	string to_String()
 	{
 		long long p = 131;
@@ -330,11 +331,12 @@ public:
 		}
 		return DenseMatrix(height, width, arrayNew);
 	}
-	bool Summ(SparseMatrix &b)
+	SparseMatrix Summ(SparseMatrix &b)
 	{
 		mp arrayNew;
+		mp a;
 		if (height != b.height || width != b.width)
-			return false;
+			return SparseMatrix(-1, -1, a);
 		for (int i = 0; i < height; i++)
 		{
 			for (int j = 0; j < width; j++)

@@ -254,12 +254,15 @@ public:
 				if (array_string[i] && b.array_column[j])
 				{
 					double result = 0;
-					for (int z = 0; z < n; z++)
+					it = array.lower_bound({ i, 0 });
+					while (it != array.end() && it->first.first == i)
 					{
-						it = array.find({ i, z });
-						iter = b.array.find({ z, j });
-						if (it != array.end() && iter != b.array.end())
+						iter = b.array.find({ it->first.second, j });
+						if (iter != b.array.end())
+						{
 							result += it->second * iter->second;
+						}
+						it++;
 					}
 					if (result != 0)
 					{
@@ -292,12 +295,15 @@ public:
 				if (array_string[i] && b.array_column[j])
 				{
 					double result = 0;
-					for (int z = 0; z < n; z++)
+					it = array.lower_bound({ i, 0 });
+					while (it != array.end() && it->first.first == i)
 					{
-						it = array.find({ i, z });
-						iter = b.array.find({ z, j });
-						if (it != array.end() && iter != b.array.end())
+						iter = b.array.find({ it->first.second, j });
+						if (iter != b.array.end())
+						{
 							result += it->second * iter->second;
+						}
+						it++;
 					}
 					if (result != 0)
 					{
